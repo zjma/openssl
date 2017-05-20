@@ -21,6 +21,8 @@ OQS_KEX *OQS_KEX_new(OQS_RAND *rand, enum OQS_KEX_alg_name alg_name, const uint8
 		return OQS_KEX_lwe_frodo_new_recommended(rand, seed, seed_len, named_parameters);
 	case OQS_KEX_alg_sidh_cln16:
 		return OQS_KEX_sidh_cln16_new(rand);
+//	case OQS_KEX_alg_lwe_okcn:
+//		return OQS_LEX_lwe_okcn_new(rand);
 	default:
 		assert(0);
 		return NULL;
