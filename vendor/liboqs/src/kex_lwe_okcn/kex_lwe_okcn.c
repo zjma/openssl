@@ -14,17 +14,17 @@
 #include <oqs/kex.h>
 #include <oqs/rand.h>
 
-#include "kex_lwe_frodo.h"
+#include "kex_lwe_okcn.h"
 #include "local.h"
 
 #define LWE_DIV_ROUNDUP(x, y) (((x) + (y)-1) / y)
 
 #include <stdio.h>
 
-OQS_KEX *OQS_KEX_lwe_frodo_new(OQS_RAND *rand, const uint8_t *seed, const size_t seed_len, const char *named_parameters) {
+OQS_KEX *OQS_KEX_lwe_okcn_new(OQS_RAND *rand, const uint8_t *seed, const size_t seed_len, const char *named_parameters) {
 
 	OQS_KEX *k;
-	struct oqs_kex_lwe_frodo_params *params;
+	struct oqs_kex_lwe_okcn_params *params;
 
 	if ((seed_len == 0) || (seed == NULL)) {
 		return NULL;
@@ -37,32 +37,32 @@ OQS_KEX *OQS_KEX_lwe_frodo_new(OQS_RAND *rand, const uint8_t *seed, const size_t
 	k->named_parameters = NULL;
 	k->method_name = NULL;
 
-	k->params = malloc(sizeof(struct oqs_kex_lwe_frodo_params));
+	k->params = malloc(sizeof(struct oqs_kex_lwe_okcn_params));
 	if (NULL == k->params) {
 		goto err;
 	}
-	params = (struct oqs_kex_lwe_frodo_params *) k->params;
+	params = (struct oqs_kex_lwe_okcn_params *) k->params;
 	params->cdf_table = NULL;
 	params->seed = NULL;
 	params->param_name = NULL;
 
 	k->rand = rand;
 	k->ctx = NULL;
-	k->alice_priv_free = &OQS_KEX_lwe_frodo_alice_priv_free;
-	k->free = &OQS_KEX_lwe_frodo_free;
+	k->alice_priv_free = &OQS_KEX_lwe_okcn_alice_priv_free;
+	k->free = &OQS_KEX_lwe_okcn_free;
 
 	if (strcmp(named_parameters, "recommended") == 0) {
 
-		k->alice_0 = &OQS_KEX_lwe_frodo_alice_0_recommended;
-		k->bob = &OQS_KEX_lwe_frodo_bob_recommended;
-		k->alice_1 = &OQS_KEX_lwe_frodo_alice_1_recommended;
+		k->alice_0 = &OQS_KEX_lwe_okcn_alice_0_recommended;
+		k->bob = &OQS_KEX_lwe_okcn_bob_recommended;
+		k->alice_1 = &OQS_KEX_lwe_okcn_alice_1_recommended;
 
-		k->method_name = strdup("LWE Frodo recommended");
+		k->method_name = strdup("LWE OKCN recommended");
 		if (NULL == k->method_name) {
 			goto err;
 		}
-		k->estimated_classical_security = 144;
-		k->estimated_quantum_security = 130;
+		k->estimated_classical_security = 147;
+		k->estimated_quantum_security = 134;
 		k->named_parameters = strdup(named_parameters);
 		if (k->named_parameters == NULL) {
 			goto err;
@@ -78,24 +78,24 @@ OQS_KEX *OQS_KEX_lwe_frodo_new(OQS_RAND *rand, const uint8_t *seed, const size_t
 		if (NULL == params->param_name) {
 			goto err;
 		}
-		params->log2_q = 15;
+		params->log2_q = 14;
 		params->q = 1 << params->log2_q;
-		params->n = 752;
+		params->n = 712;
 		params->extracted_bits = 4;
 		params->nbar = 8;
 		params->key_bits = 256;
-		params->rec_hint_len = LWE_DIV_ROUNDUP(params->nbar * params->nbar, 8);
+        params->single_hint_len = 8;
+		params->rec_hint_len = LWE_DIV_ROUNDUP(params->nbar * params->nbar * params->single_hint_len, 8);
 		params->pub_len = LWE_DIV_ROUNDUP(params->n * params->nbar * params->log2_q, 8);
 		params->stripe_step = 8;
-		params->sampler_num = 12;
+		params->sampler_num = 16;
 		params->cdf_table_len = 6;
 		params->cdf_table = malloc(params->cdf_table_len * sizeof(uint16_t));
 		if (NULL == params->cdf_table) {
 			goto err;
 		}
-		uint16_t cdf_table_tmp[6] = {602, 1521, 1927, 2031, 2046, 2047};
+		uint16_t cdf_table_tmp[6] = {11108, 26598, 31840, 32698, 32765, 32767}; 
 		memcpy(params->cdf_table, cdf_table_tmp, sizeof(cdf_table_tmp));
-
 	} else {
 
 		goto err;
@@ -122,22 +122,22 @@ err:
 
 // pre-process code to obtain "recommended" functions
 #define MACRIFY(NAME) NAME ## _recommended
-#include "kex_lwe_frodo_macrify.c"
+#include "kex_lwe_okcn_macrify.c"
 // undefine macros to avoid any confusion later
 #undef MACRIFY
 
-void OQS_KEX_lwe_frodo_alice_priv_free(UNUSED OQS_KEX *k, void *alice_priv) {
+void OQS_KEX_lwe_okcn_alice_priv_free(UNUSED OQS_KEX *k, void *alice_priv) {
 	if (alice_priv) {
 		free(alice_priv);
 	}
 }
 
-void OQS_KEX_lwe_frodo_free(OQS_KEX *k) {
+void OQS_KEX_lwe_okcn_free(OQS_KEX *k) {
 	if (!k) {
 		return;
 	}
 	if (k->params) {
-		struct oqs_kex_lwe_frodo_params *params = (struct oqs_kex_lwe_frodo_params *) k->params;
+		struct oqs_kex_lwe_okcn_params *params = (struct oqs_kex_lwe_okcn_params *) k->params;
 		free(params->cdf_table);
 		params->cdf_table = NULL;
 		free(params->seed);

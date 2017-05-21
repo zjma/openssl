@@ -1,8 +1,12 @@
-int MACRIFY(OQS_KEX_lwe_frodo_alice_0)(OQS_KEX *k, void **alice_priv, uint8_t **alice_msg, size_t *alice_msg_len) {
-
+int MACRIFY(OQS_KEX_lwe_okcn_alice_0)(
+        OQS_KEX *k, 
+        void **alice_priv, 
+        uint8_t **alice_msg, 
+        size_t *alice_msg_len) 
+{
 	int ret;
 
-	struct oqs_kex_lwe_frodo_params *params = (struct oqs_kex_lwe_frodo_params *) k->params;
+	struct oqs_kex_lwe_okcn_params *params = (struct oqs_kex_lwe_okcn_params *) k->params;
 	uint16_t *b = NULL, *e = NULL;
 
 	*alice_priv = NULL;
@@ -27,21 +31,21 @@ int MACRIFY(OQS_KEX_lwe_frodo_alice_0)(OQS_KEX *k, void **alice_priv, uint8_t **
 	}
 
 	/* generate S and E */
-	ret = oqs_kex_lwe_frodo_sample_n(*alice_priv, params->n * params->nbar, params, k->rand);
+	ret = oqs_kex_lwe_okcn_sample_n(*alice_priv, params->n * params->nbar, params, k->rand);
 	if (ret != 1) {
 		goto err;
 	}
-	ret = oqs_kex_lwe_frodo_sample_n(e, params->n * params->nbar, params, k->rand);
+	ret = oqs_kex_lwe_okcn_sample_n(e, params->n * params->nbar, params, k->rand);
 	if (ret != 1) {
 		goto err;
 	}
 
 	/* compute B = AS + E */
-	ret = MACRIFY(oqs_kex_lwe_frodo_mul_add_as_plus_e_on_the_fly)(b, *alice_priv, e, params);
+	ret = MACRIFY(oqs_kex_lwe_okcn_mul_add_as_plus_e_on_the_fly)(b, *alice_priv, e, params);
 	if (ret != 1) {
 		goto err;
 	}
-	oqs_kex_lwe_frodo_pack(*alice_msg, params->pub_len, b, params->n * params->nbar, params->log2_q);
+	oqs_kex_lwe_okcn_pack(*alice_msg, params->pub_len, b, params->n * params->nbar, params->log2_q);
 
 	*alice_msg_len = params->pub_len;
 
@@ -62,11 +66,18 @@ cleanup:
 
 }
 
-int MACRIFY(OQS_KEX_lwe_frodo_bob)(OQS_KEX *k, const uint8_t *alice_msg, const size_t alice_msg_len, uint8_t **bob_msg, size_t *bob_msg_len, uint8_t **key, size_t *key_len) {
-
+int MACRIFY(OQS_KEX_lwe_okcn_bob)(
+        OQS_KEX *k, 
+        const uint8_t *alice_msg, 
+        const size_t alice_msg_len, 
+        uint8_t **bob_msg, 
+        size_t *bob_msg_len, 
+        uint8_t **key, 
+        size_t *key_len) 
+{
 	int ret;
 
-	struct oqs_kex_lwe_frodo_params *params = (struct oqs_kex_lwe_frodo_params *) k->params;
+	struct oqs_kex_lwe_okcn_params *params = (struct oqs_kex_lwe_okcn_params *) k->params;
 
 	uint16_t *bob_priv = NULL;
 	uint8_t *bob_rec = NULL;
@@ -105,52 +116,55 @@ int MACRIFY(OQS_KEX_lwe_frodo_bob)(OQS_KEX *k, const uint8_t *alice_msg, const s
 	if (v == NULL) {
 		goto err;
 	}
-	*bob_msg = malloc(params->pub_len + params->rec_hint_len);
+    uint16_t bob_pub_len = LWE_DIV_ROUNDUP(params->n * params->nbar * (params->log2_q-2), 8);
+	*bob_msg = malloc(bob_pub_len + params->rec_hint_len);
 	if (*bob_msg == NULL) {
 		goto err;
 	}
-	bob_rec = *bob_msg + params->pub_len;
+	bob_rec = *bob_msg + bob_pub_len;
 	*key = malloc(params->key_bits >> 3);
 	if (*key == NULL) {
 		goto err;
 	}
 
 	/* generate S' and E' */
-	ret = oqs_kex_lwe_frodo_sample_n(bob_priv, params->n * params->nbar, params, k->rand);
+	ret = oqs_kex_lwe_okcn_sample_n(bob_priv, params->n * params->nbar, params, k->rand);
 	if (ret != 1) {
 		goto err;
 	}
-	ret = oqs_kex_lwe_frodo_sample_n(eprime, params->n * params->nbar, params, k->rand);
+	ret = oqs_kex_lwe_okcn_sample_n(eprime, params->n * params->nbar, params, k->rand);
 	if (ret != 1) {
 		goto err;
 	}
 
 	/* compute B' = S'A + E' */
-	ret = MACRIFY(oqs_kex_lwe_frodo_mul_add_sa_plus_e_on_the_fly)(bprime, bob_priv, eprime, params);
+	ret = MACRIFY(oqs_kex_lwe_okcn_mul_add_sa_plus_e_on_the_fly)(bprime, bob_priv, eprime, params);
 	if (ret != 1) {
 		goto err;
 	}
-	oqs_kex_lwe_frodo_pack(*bob_msg, params->pub_len, bprime, params->n * params->nbar, params->log2_q);
+    {
+        int i;
+        for (i = 0;i < params->n * params->nbar;i++) {
+            bprime[i] >>= 2;
+        }
+    }
+	oqs_kex_lwe_okcn_pack(*bob_msg, bob_pub_len, bprime, params->n * params->nbar, params->log2_q - 2);
 
 	/* generate E'' */
-	ret = oqs_kex_lwe_frodo_sample_n(eprimeprime, params->nbar * params->nbar, params, k->rand);
+	ret = oqs_kex_lwe_okcn_sample_n(eprimeprime, params->nbar * params->nbar, params, k->rand);
 	if (ret != 1) {
 		goto err;
 	}
 
 	/* unpack B */
-	oqs_kex_lwe_frodo_unpack(b, params->n * params->nbar, alice_msg, alice_msg_len, params->log2_q);
+	oqs_kex_lwe_okcn_unpack(b, params->n * params->nbar, alice_msg, alice_msg_len, params->log2_q);
 
 	/* compute V = S'B + E'' */
-	MACRIFY(oqs_kex_lwe_frodo_mul_add_sb_plus_e)(v, b, bob_priv, eprimeprime);
+	MACRIFY(oqs_kex_lwe_okcn_mul_add_sb_plus_e)(v, b, bob_priv, eprimeprime);
 
-	/* compute C = <V>_{2^B} */
-	MACRIFY(oqs_kex_lwe_frodo_crossround2)(bob_rec, v);
+    MACRIFY(oqs_kex_lwe_okcn_con)(bob_rec, (unsigned char *)(*key), v);
 
-	/* compute K = round(V)_{2^B} */
-	MACRIFY(oqs_kex_lwe_frodo_round2)(*key, v);
-
-	*bob_msg_len = params->pub_len + params->rec_hint_len;
+	*bob_msg_len = bob_pub_len + params->rec_hint_len;
 	*key_len = params->key_bits >> 3;
 
 	ret = 1;
@@ -187,17 +201,18 @@ cleanup:
 
 }
 
-int MACRIFY(OQS_KEX_lwe_frodo_alice_1)(OQS_KEX *k, const void *alice_priv, const uint8_t *bob_msg, const size_t bob_msg_len, uint8_t **key, size_t *key_len) {
+int MACRIFY(OQS_KEX_lwe_okcn_alice_1)(OQS_KEX *k, const void *alice_priv, const uint8_t *bob_msg, const size_t bob_msg_len, uint8_t **key, size_t *key_len) {
 
 	int ret;
 
-	struct oqs_kex_lwe_frodo_params *params = (struct oqs_kex_lwe_frodo_params *) k->params;
+	struct oqs_kex_lwe_okcn_params *params = (struct oqs_kex_lwe_okcn_params *) k->params;
 
 	uint16_t *bprime = NULL, *w = NULL;
 	*key = NULL;
 
 	/* check length of other party's public key */
-	if (bob_msg_len != params->pub_len + params->rec_hint_len) {
+    uint16_t bob_pub_len = LWE_DIV_ROUNDUP(params->n * params->nbar * (params->log2_q-2), 8);
+	if (bob_msg_len != bob_pub_len + params->rec_hint_len) {
 		goto err;
 	}
 
@@ -216,14 +231,20 @@ int MACRIFY(OQS_KEX_lwe_frodo_alice_1)(OQS_KEX *k, const void *alice_priv, const
 	}
 
 	/* unpack B' */
-	oqs_kex_lwe_frodo_unpack(bprime, params->n * params->nbar, bob_msg, params->pub_len, params->log2_q);
+	oqs_kex_lwe_okcn_unpack(bprime, params->n * params->nbar, bob_msg, bob_pub_len, params->log2_q-2);
+    {
+        int i;
+        for (i = 0;i < params->n * params->nbar;i++) {
+            bprime[i] = (bprime[i] << 2) + 2;
+        }
+    }
 
 	/* compute W = B'S */
-	MACRIFY(oqs_kex_lwe_frodo_mul_bs)(w, bprime, (uint16_t *) alice_priv);
+	MACRIFY(oqs_kex_lwe_okcn_mul_bs)(w, bprime, (uint16_t *) alice_priv);
 
 	/* compute K = rec(B'S, C) */
-	const uint8_t *bob_rec = bob_msg + params->pub_len;
-	MACRIFY(oqs_kex_lwe_frodo_reconcile)(*key, w, bob_rec);
+	const uint8_t *bob_rec = bob_msg + bob_pub_len;
+	MACRIFY(oqs_kex_lwe_okcn_rec)(*key, w, bob_rec);
 
 	*key_len = params->key_bits >> 3;
 

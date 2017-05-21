@@ -18,9 +18,6 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\..\src\crypto\rand\test_rand.c" />
-  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{6BB96591-0BCD-42E6-8863-4B9BFE75530C}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
@@ -168,6 +165,9 @@
       <AdditionalLibraryDirectories>$(SolutionDir)$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\rand\test_rand.c" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

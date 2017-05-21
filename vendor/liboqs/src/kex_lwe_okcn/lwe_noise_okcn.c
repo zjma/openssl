@@ -131,7 +131,7 @@ static int lwe_sample_n_inverse_16(uint16_t *s, const size_t n, const uint16_t *
 	return 1;
 }
 
-int oqs_kex_lwe_frodo_sample_n(uint16_t *s, const size_t n, struct oqs_kex_lwe_frodo_params *params, OQS_RAND *rand) {
+int oqs_kex_lwe_okcn_sample_n(uint16_t *s, const size_t n, struct oqs_kex_lwe_okcn_params *params, OQS_RAND *rand) {
 
 	switch (params->sampler_num) {
 	case 8: {

@@ -8,7 +8,7 @@
 
 #include "local.h"
 
-static int lwe_sample_n_inverse_8(uint16_t *s, const size_t n, const uint8_t *cdf_table, const size_t cdf_table_len, OQS_RAND *rand) {
+static int lwr_sample_n_inverse_8(uint16_t *s, const size_t n, const uint8_t *cdf_table, const size_t cdf_table_len, OQS_RAND *rand) {
 
 	/* Fills vector s with n samples from the noise distribution which requires
 	 * 8 bits to sample. The distribution is specified by its CDF. Super-constant
@@ -45,7 +45,7 @@ static int lwe_sample_n_inverse_8(uint16_t *s, const size_t n, const uint8_t *cd
 	return 1;
 }
 
-static int lwe_sample_n_inverse_12(uint16_t *s, const size_t n, const uint16_t *cdf_table, const size_t cdf_table_len, OQS_RAND *rand) {
+static int lwr_sample_n_inverse_12(uint16_t *s, const size_t n, const uint16_t *cdf_table, const size_t cdf_table_len, OQS_RAND *rand) {
 	/* Fills vector s with n samples from the noise distribution which requires
 	 * 12 bits to sample. The distribution is specified by its CDF. Super-constant
 	 * timing: the CDF table is ingested for every sample.
@@ -96,7 +96,7 @@ static int lwe_sample_n_inverse_12(uint16_t *s, const size_t n, const uint16_t *
 	return 1;
 }
 
-static int lwe_sample_n_inverse_16(uint16_t *s, const size_t n, const uint16_t *cdf_table, const size_t cdf_table_len, OQS_RAND *rand) {
+static int lwr_sample_n_inverse_16(uint16_t *s, const size_t n, const uint16_t *cdf_table, const size_t cdf_table_len, OQS_RAND *rand) {
 	/* Fills vector s with n samples from the noise distribution which requires
 	 * 16 bits to sample. The distribution is specified by its CDF. Super-constant
 	 * timing: the CDF table is ingested for every sample.
@@ -131,7 +131,7 @@ static int lwe_sample_n_inverse_16(uint16_t *s, const size_t n, const uint16_t *
 	return 1;
 }
 
-int oqs_kex_lwe_frodo_sample_n(uint16_t *s, const size_t n, struct oqs_kex_lwe_frodo_params *params, OQS_RAND *rand) {
+int oqs_kex_lwr_okcn_sample_n(uint16_t *s, const size_t n, struct oqs_kex_lwr_okcn_params *params, OQS_RAND *rand) {
 
 	switch (params->sampler_num) {
 	case 8: {
@@ -143,14 +143,14 @@ int oqs_kex_lwe_frodo_sample_n(uint16_t *s, const size_t n, struct oqs_kex_lwe_f
 		for (size_t i = 0; i < params->cdf_table_len; i++) {
 			cdf_table_8[i] = (uint8_t) params->cdf_table[i];
 		}
-		int ret = lwe_sample_n_inverse_8(s, n, cdf_table_8, params->cdf_table_len, rand);
+		int ret = lwr_sample_n_inverse_8(s, n, cdf_table_8, params->cdf_table_len, rand);
 		free(cdf_table_8);
 		return ret;
 	}
 	case 12:
-		return lwe_sample_n_inverse_12(s, n, params->cdf_table, params->cdf_table_len, rand);
+		return lwr_sample_n_inverse_12(s, n, params->cdf_table, params->cdf_table_len, rand);
 	case 16:
-		return lwe_sample_n_inverse_16(s, n, params->cdf_table, params->cdf_table_len, rand);
+		return lwr_sample_n_inverse_16(s, n, params->cdf_table, params->cdf_table_len, rand);
 	default:
 		return 0;
 	}

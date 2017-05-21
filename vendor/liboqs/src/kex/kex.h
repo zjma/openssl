@@ -19,6 +19,7 @@ enum OQS_KEX_alg_name {
 	OQS_KEX_alg_lwe_frodo,
 	OQS_KEX_alg_sidh_cln16,
 	OQS_KEX_alg_lwe_okcn,
+	OQS_KEX_alg_lwr_okcn,
 };
 
 typedef struct OQS_KEX OQS_KEX;

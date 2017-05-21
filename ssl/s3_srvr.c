@@ -1893,7 +1893,7 @@ int ssl3_send_server_key_exchange(SSL *s)
                         goto err;
                     }
                 } else if (type & SSL_kOQSKEX_LWE_OKCN) {
-                    if ((s->s3->tmp.oqskex_kex = OQS_KEX_new(s->s3->tmp.oqskex_rand, OQS_KEX_alg_lwe_okcn, NULL, 0, NULL)) == NULL) {
+                    if ((s->s3->tmp.oqskex_kex = OQS_KEX_new(s->s3->tmp.oqskex_rand, OQS_KEX_alg_lwe_okcn, "0123456789012345", 16, "recommended")) == NULL) {
                         SSLerr(SSL_F_SSL3_SEND_SERVER_KEY_EXCHANGE,ERR_R_MALLOC_FAILURE);
                         goto err;
                     }
@@ -1960,7 +1960,7 @@ int ssl3_send_server_key_exchange(SSL *s)
                     goto err;
                 }
             } else if (type & SSL_kOQSKEX_LWE_OKCN) {
-                if ((s->s3->tmp.oqskex_kex = OQS_KEX_new(s->s3->tmp.oqskex_rand, OQS_KEX_alg_lwe_okcn, NULL, 0, NULL)) == NULL) {
+                if ((s->s3->tmp.oqskex_kex = OQS_KEX_new(s->s3->tmp.oqskex_rand, OQS_KEX_alg_lwe_okcn, "01234567890123456", 16, "recommended")) == NULL) {
                     SSLerr(SSL_F_SSL3_SEND_SERVER_KEY_EXCHANGE,ERR_R_MALLOC_FAILURE);
                     goto err;
                 }

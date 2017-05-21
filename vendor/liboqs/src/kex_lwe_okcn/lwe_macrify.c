@@ -1,41 +1,22 @@
-// [.]_2
-void MACRIFY(oqs_kex_lwe_frodo_round2)(unsigned char *out, uint16_t *in) {
-	oqs_kex_lwe_frodo_key_round(in, PARAMS_NBAR * PARAMS_NBAR, PARAMS_LOG2Q - PARAMS_EXTRACTED_BITS);
+void MACRIFY(oqs_kex_lwe_okcn_con)(unsigned char *bob_rec, unsigned char *key, uint16_t *in) {
 	int i;
 	for (i = 0; i < PARAMS_NBAR * PARAMS_NBAR; i++) {
-		in[i] >>= PARAMS_LOG2Q - PARAMS_EXTRACTED_BITS;  // drop bits that were zeroed out
+        bob_rec[i] = in[i] >> 2;
+		in[i] >>= 10;  // drop least bits
 	}
-
-	// out should have enough space for the key
-	oqs_kex_lwe_frodo_pack(out, PARAMS_KEY_BITS / 8, in, PARAMS_NBAR * PARAMS_NBAR, PARAMS_EXTRACTED_BITS);
+	oqs_kex_lwe_okcn_pack(key, PARAMS_KEY_BITS / 8, in, PARAMS_NBAR * PARAMS_NBAR, PARAMS_EXTRACTED_BITS);
 }
 
-void MACRIFY(oqs_kex_lwe_frodo_crossround2)(unsigned char *out, const uint16_t *in) {
-	int i;
-	// out should have enough space for N_BAR * N_BAR bits
-	memset((unsigned char *)out, 0, PARAMS_REC_HINT_LENGTH);
-
-	uint16_t whole = 1 << (PARAMS_LOG2Q - PARAMS_EXTRACTED_BITS);
-	uint16_t half = whole >> 1;
-	uint16_t mask = whole - 1;
-
-	for (i = 0; i < PARAMS_NBAR * PARAMS_NBAR; i++) {
-		uint16_t remainder = in[i] & mask;
-		out[i / 8] += (remainder >= half) << (i % 8);
-	}
-}
-
-void MACRIFY(oqs_kex_lwe_frodo_reconcile)(unsigned char *out, uint16_t *w, const unsigned char *hint) {
-	oqs_kex_lwe_frodo_key_round_hints(w, PARAMS_NBAR * PARAMS_NBAR, PARAMS_LOG2Q - PARAMS_EXTRACTED_BITS, hint);
+void MACRIFY(oqs_kex_lwe_okcn_rec)(unsigned char *key, uint16_t *w, const unsigned char *hint) {
 	int i;
 	for (i = 0; i < PARAMS_NBAR * PARAMS_NBAR; i++) {
-		w[i] >>= PARAMS_LOG2Q - PARAMS_EXTRACTED_BITS;  // drop bits that were zeroed out
+		w[i] = (w[i] - (((uint16_t)hint[i])<<2) + 510) >> 10;
 	}
-	oqs_kex_lwe_frodo_pack(out, PARAMS_KEY_BITS / 8, w, PARAMS_NBAR * PARAMS_NBAR, PARAMS_EXTRACTED_BITS);
+	oqs_kex_lwe_okcn_pack(key, PARAMS_KEY_BITS / 8, w, PARAMS_NBAR * PARAMS_NBAR, PARAMS_EXTRACTED_BITS);
 }
 
 // Generate-and-multiply: generate A row-wise, multiply by s on the right.
-int MACRIFY(oqs_kex_lwe_frodo_mul_add_as_plus_e_on_the_fly)(uint16_t *out, const uint16_t *s, const uint16_t *e, struct oqs_kex_lwe_frodo_params *params) {
+int MACRIFY(oqs_kex_lwe_okcn_mul_add_as_plus_e_on_the_fly)(uint16_t *out, const uint16_t *s, const uint16_t *e, struct oqs_kex_lwe_okcn_params *params) {
 	// A (N x N)
 	// s,e (N x N_BAR)
 	// out = A * s + e (N x N_BAR)
@@ -118,7 +99,7 @@ cleanup:
 }
 
 // Generate-and-multiply: generate A column-wise, multiply by s' on the left.
-int MACRIFY(oqs_kex_lwe_frodo_mul_add_sa_plus_e_on_the_fly)(uint16_t *out, const uint16_t *s, const uint16_t *e, struct oqs_kex_lwe_frodo_params *params) {
+int MACRIFY(oqs_kex_lwe_okcn_mul_add_sa_plus_e_on_the_fly)(uint16_t *out, const uint16_t *s, const uint16_t *e, struct oqs_kex_lwe_okcn_params *params) {
 	// a (N x N)
 	// s',e' (N_BAR x N)
 	// out = s'a + e' (N_BAR x N)
@@ -197,7 +178,7 @@ cleanup:
 }
 
 // multiply by s on the right
-void MACRIFY(oqs_kex_lwe_frodo_mul_bs)(uint16_t *out, const uint16_t *b, const uint16_t *s) {
+void MACRIFY(oqs_kex_lwe_okcn_mul_bs)(uint16_t *out, const uint16_t *b, const uint16_t *s) {
 	// b (N_BAR x N)
 	// s (N x N_BAR)
 	// out = bs
@@ -214,7 +195,7 @@ void MACRIFY(oqs_kex_lwe_frodo_mul_bs)(uint16_t *out, const uint16_t *b, const u
 }
 
 // multiply by s on the left
-void MACRIFY(oqs_kex_lwe_frodo_mul_add_sb_plus_e)(uint16_t *out, const uint16_t *b, const uint16_t *s, const uint16_t *e) {
+void MACRIFY(oqs_kex_lwe_okcn_mul_add_sb_plus_e)(uint16_t *out, const uint16_t *b, const uint16_t *s, const uint16_t *e) {
 	// b (N x N_BAR)
 	// s (N_BAR x N)
 	// e (N_BAR x N_BAR)
