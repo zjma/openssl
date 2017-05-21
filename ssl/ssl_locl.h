@@ -322,6 +322,7 @@
 # define SSL_kOQSKEX_LWE_FRODO_RECOMMENDED 0x00010000L
 # define SSL_kOQSKEX_SIDH_CLN16 0x00020000L
 # define SSL_kOQSKEX_LWE_OKCN 0x00040000L
+# define SSL_kOQSKEX_LWR_OKCN 0x00080000L
 
 /* Bits for algorithm_auth (server authentication) */
 /* RSA auth */

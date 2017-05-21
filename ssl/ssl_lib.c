@@ -2449,6 +2449,8 @@ void ssl_set_cert_masks(CERT *c, const SSL_CIPHER *cipher)
     emask_k |= SSL_kOQSKEX_SIDH_CLN16;
     mask_k |= SSL_kOQSKEX_LWE_OKCN;
     emask_k |= SSL_kOQSKEX_LWE_OKCN;
+    mask_k |= SSL_kOQSKEX_LWR_OKCN;
+    emask_k |= SSL_kOQSKEX_LWR_OKCN;
 #endif
 
 #ifndef OPENSSL_NO_PSK
